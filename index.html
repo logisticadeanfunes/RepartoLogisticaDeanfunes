@@ -2,7 +2,8 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Reparto Diario</title>
+  <title>Repartos</title>
+
   <style>
     body {
       font-family: Arial;
@@ -11,7 +12,7 @@
     }
 
     .container {
-      max-width: 550px;
+      max-width: 600px;
       margin: auto;
       background: white;
       padding: 20px;
@@ -23,14 +24,7 @@
       text-align: center;
     }
 
-    .hoy {
-      text-align: center;
-      font-weight: bold;
-      margin-bottom: 10px;
-      color: #007bff;
-    }
-
-    select, input, button {
+    input, button {
       padding: 8px;
       margin: 5px 0;
       border-radius: 6px;
@@ -55,61 +49,122 @@
       color: green;
     }
 
+    .filtros {
+      margin-bottom: 10px;
+    }
+
   </style>
 </head>
 <body>
 
 <div class="container">
-  <h1>🚚 Reparto Diario</h1>
+  <h1>🚚 Repartos</h1>
 
-  <div class="hoy" id="hoy"></div>
+  <!-- FILTRO -->
+  <div class="filtros">
+    <label>Filtrar por fecha:</label><br>
+    <input type="date" id="filtroFecha">
+  </div>
 
-  <!-- Agregar cliente -->
+  <!-- AGREGAR CLIENTE -->
   <div>
     <input type="text" id="nuevoCliente" placeholder="Nombre del cliente">
-    <select id="diaCliente">
-      <option>Lunes</option>
-      <option>Martes</option>
-      <option>Miércoles</option>
-      <option>Jueves</option>
-      <option>Viernes</option>
-    </select>
+    <input type="date" id="fechaCliente">
     <button onclick="agregarCliente()">Agregar</button>
   </div>
 
+  <!-- LISTA -->
   <div id="lista"></div>
 </div>
 
+<!-- FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
 <script>
-let clientes = JSON.parse(localStorage.getItem("clientes")) || [];
+/* 🔥 PEGÁ ACA TU CONFIG DE FIREBASE */
+const firebaseConfig = {
+  apiKey: "TU_API_KEY",
+  authDomain: "TU_AUTH_DOMAIN",
+  databaseURL: "TU_DATABASE_URL",
+  projectId: "TU_PROJECT_ID",
+  storageBucket: "TU_STORAGE",
+  messagingSenderId: "TU_SENDER_ID",
+  appId: "TU_APP_ID"
+};
 
-const dias = ["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"];
-const hoyNombre = dias[new Date().getDay()];
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
-document.getElementById("hoy").textContent = "Hoy: " + hoyNombre;
+/* DATOS */
+let clientesData = {};
 
-function guardar() {
-  localStorage.setItem("clientes", JSON.stringify(clientes));
+/* ESCUCHA EN TIEMPO REAL */
+db.ref("clientes").on("value", snapshot => {
+  clientesData = snapshot.val() || {};
+  render();
+});
+
+/* AGREGAR CLIENTE */
+function agregarCliente() {
+  const nombre = document.getElementById("nuevoCliente").value;
+  const fecha = document.getElementById("fechaCliente").value;
+
+  if (!nombre || !fecha) {
+    alert("Completá nombre y fecha");
+    return;
+  }
+
+  db.ref("clientes").push({
+    nombre: nombre,
+    fecha: fecha,
+    entregado: false,
+    hora: null
+  });
+
+  document.getElementById("nuevoCliente").value = "";
 }
 
+/* MARCAR ENTREGA */
+function toggle(id, cliente) {
+  db.ref("clientes/" + id).update({
+    entregado: !cliente.entregado,
+    hora: !cliente.entregado ? new Date().toLocaleTimeString() : null
+  });
+}
+
+/* FILTRO AUTOMÁTICO HOY */
+function getHoy() {
+  const hoy = new Date();
+  return hoy.toISOString().split("T")[0];
+}
+
+/* RENDER */
 function render() {
   const lista = document.getElementById("lista");
+  const filtroInput = document.getElementById("filtroFecha");
+
+  // si no hay filtro, usa hoy automáticamente
+  const filtro = filtroInput.value || getHoy();
+
   lista.innerHTML = "";
 
-  clientes
-    .filter(c => c.dia === hoyNombre)
-    .forEach((cliente, index) => {
+  Object.entries(clientesData)
+    .filter(([id, c]) => c.fecha === filtro)
+    .forEach(([id, cliente]) => {
 
       const div = document.createElement("div");
       div.className = "cliente";
 
       div.innerHTML = `
         <label>
-          <input type="checkbox" ${cliente.entregado ? "checked" : ""} onchange="toggle(${index})">
-          ${cliente.nombre}
+          <input type="checkbox"
+            ${cliente.entregado ? "checked" : ""}
+            onchange='toggle("${id}", ${JSON.stringify(cliente)})'>
+          ${cliente.nombre} (${cliente.fecha})
         </label>
         <span class="fecha">
-          ${cliente.fecha ? "✔ " + cliente.fecha : ""}
+          ${cliente.hora ? "✔ " + cliente.hora : ""}
         </span>
       `;
 
@@ -117,39 +172,9 @@ function render() {
     });
 }
 
-function agregarCliente() {
-  const nombre = document.getElementById("nuevoCliente").value;
-  const dia = document.getElementById("diaCliente").value;
+/* ACTUALIZA CUANDO CAMBIA EL FILTRO */
+document.getElementById("filtroFecha").addEventListener("change", render);
 
-  if (nombre.trim() === "") return;
-
-  clientes.push({
-    nombre: nombre,
-    dia: dia,
-    entregado: false,
-    fecha: null
-  });
-
-  document.getElementById("nuevoCliente").value = "";
-
-  guardar();
-  render();
-}
-
-function toggle(index) {
-  clientes[index].entregado = !clientes[index].entregado;
-
-  if (clientes[index].entregado) {
-    clientes[index].fecha = new Date().toLocaleString();
-  } else {
-    clientes[index].fecha = null;
-  }
-
-  guardar();
-  render();
-}
-
-render();
 </script>
 
 </body>
