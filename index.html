@@ -1,151 +1,38 @@
 <!DOCTYPE html>
-<html lang="es">
+<html>
 <head>
 <meta charset="UTF-8">
-<title>Repartos Online</title>
+<title>Repartos</title>
 
 <style>
-body { font-family: Arial; background:#eef2f5; padding:20px; }
-.container { max-width:800px; margin:auto; background:white; padding:20px; border-radius:10px; }
-.cliente { display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #ddd; }
-input, select, button { margin:5px; padding:8px; }
+body {
+  font-family: Arial;
+  text-align: center;
+  background: #eef2f5;
+  padding-top: 100px;
+}
+a {
+  display: block;
+  margin: 20px;
+  padding: 15px;
+  background: #007bff;
+  color: white;
+  text-decoration: none;
+  border-radius: 10px;
+  width: 200px;
+  margin-left: auto;
+  margin-right: auto;
+}
 </style>
+
 </head>
 
 <body>
 
-<div class="container">
+<h1>🚚 Sistema de Reparto</h1>
 
-<h2>🚚 Sistema de Reparto</h2>
-
-<!-- MODO -->
-<select id="modo" onchange="render()">
-  <option value="empleado">Empleado</option>
-  <option value="jefe">Jefe</option>
-</select>
-
-<!-- NOMBRE EMPLEADO -->
-<input type="text" id="empleadoNombre" placeholder="Nombre empleado">
-
-<!-- FECHA -->
-<input type="date" id="filtroFecha">
-
-<!-- CREAR CLIENTE (JEFE) -->
-<div id="crear">
-  <input type="text" id="clienteNombre" placeholder="Cliente">
-  <input type="text" id="clienteEmpleado" placeholder="Empleado asignado">
-  <button onclick="agregar()">Agregar</button>
-</div>
-
-<hr>
-
-<div id="lista"></div>
-
-</div>
-
-<!-- FIREBASE -->
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-
-<script>
-
-// 🔥 PEGAR ACA TU CONFIG DE FIREBASE
-const firebaseConfig = {
-  apiKey: "AIzaSyB7W3rnQ8iuwyUKgZam4DIdyFkSp7Yh66g",
-  authDomain: "repartobackup-1ef28.firebaseapp.com",
-  databaseURL: "https://repartobackup-1ef28-default-rtdb.firebaseio.com/",
-  projectId: "repartobackup-1ef28"
-};
-
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-
-let datos = {};
-
-// 🔄 TIEMPO REAL
-db.ref("clientes").on("value", snapshot => {
-  datos = snapshot.val() || {};
-  render();
-});
-
-// 📅 FECHA HOY
-function hoy() {
-  return new Date().toISOString().split("T")[0];
-}
-
-// ➕ AGREGAR CLIENTE (JEFE)
-function agregar() {
-  const nombre = document.getElementById("clienteNombre").value;
-  const empleado = document.getElementById("clienteEmpleado").value;
-  const fecha = document.getElementById("filtroFecha").value || hoy();
-
-  if (!nombre || !empleado) {
-    alert("Completa todos los campos");
-    return;
-  }
-
-  db.ref("clientes").push({
-    nombre,
-    empleado,
-    fecha,
-    entregado: false,
-    hora: null
-  });
-
-  document.getElementById("clienteNombre").value = "";
-  document.getElementById("clienteEmpleado").value = "";
-}
-
-// ✔️ MARCAR ENTREGADO
-function toggle(id, cliente) {
-  db.ref("clientes/" + id).update({
-    entregado: !cliente.entregado,
-    hora: !cliente.entregado ? new Date().toLocaleTimeString() : null
-  });
-}
-
-// 🎨 RENDER
-function render() {
-  const lista = document.getElementById("lista");
-  const modo = document.getElementById("modo").value;
-  const empleadoNombre = document.getElementById("empleadoNombre").value;
-  const fecha = document.getElementById("filtroFecha").value || hoy();
-
-  lista.innerHTML = "";
-
-  Object.entries(datos)
-    .filter(([id, c]) => c.fecha === fecha)
-    .filter(([id, c]) => modo === "jefe" || c.empleado === empleadoNombre)
-    .forEach(([id, cliente]) => {
-
-      const div = document.createElement("div");
-      div.className = "cliente";
-
-      const left = document.createElement("div");
-
-      if (modo === "empleado") {
-        const check = document.createElement("input");
-        check.type = "checkbox";
-        check.checked = cliente.entregado;
-        check.onchange = () => toggle(id, cliente);
-        left.appendChild(check);
-      }
-
-      left.append(" " + cliente.nombre + " (" + cliente.empleado + ")");
-
-      const right = document.createElement("div");
-      right.textContent = cliente.entregado
-        ? "✔ " + (cliente.hora || "")
-        : "Pendiente";
-
-      div.appendChild(left);
-      div.appendChild(right);
-
-      lista.appendChild(div);
-    });
-}
-
-</script>
+<a href="empleado.html">Entrar como empleado</a>
+<a href="jefe.html">Entrar como jefe</a>
 
 </body>
 </html>
