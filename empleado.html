@@ -130,10 +130,9 @@ function verClientes() {
 function marcar(id, c) {
   db.ref("clientes/" + id).update({
     entregado: !c.entregado,
-    hora: !c.entregado ? new Date().toLocaleTimeString() : null
+    hora: !c.entregado ? new Date().toLocaleString('es-AR') : null
   });
 }
-
 // RENDER
 function render() {
   const lista = document.getElementById("lista");
