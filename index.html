@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Reparto Diario</title>
+  <style>
+    body {
+      font-family: Arial;
+      background: #eef2f5;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 550px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    .hoy {
+      text-align: center;
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: #007bff;
+    }
+
+    select, input, button {
+      padding: 8px;
+      margin: 5px 0;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      background: #28a745;
+      color: white;
+      cursor: pointer;
+    }
+
+    .cliente {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .fecha {
+      font-size: 0.8em;
+      color: green;
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>🚚 Reparto Diario</h1>
+
+  <div class="hoy" id="hoy"></div>
+
+  <!-- Agregar cliente -->
+  <div>
+    <input type="text" id="nuevoCliente" placeholder="Nombre del cliente">
+    <select id="diaCliente">
+      <option>Lunes</option>
+      <option>Martes</option>
+      <option>Miércoles</option>
+      <option>Jueves</option>
+      <option>Viernes</option>
+    </select>
+    <button onclick="agregarCliente()">Agregar</button>
+  </div>
+
+  <div id="lista"></div>
+</div>
+
+<script>
+let clientes = JSON.parse(localStorage.getItem("clientes")) || [];
+
+const dias = ["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"];
+const hoyNombre = dias[new Date().getDay()];
+
+document.getElementById("hoy").textContent = "Hoy: " + hoyNombre;
+
+function guardar() {
+  localStorage.setItem("clientes", JSON.stringify(clientes));
+}
+
+function render() {
+  const lista = document.getElementById("lista");
+  lista.innerHTML = "";
+
+  clientes
+    .filter(c => c.dia === hoyNombre)
+    .forEach((cliente, index) => {
+
+      const div = document.createElement("div");
+      div.className = "cliente";
+
+      div.innerHTML = `
+        <label>
+          <input type="checkbox" ${cliente.entregado ? "checked" : ""} onchange="toggle(${index})">
+          ${cliente.nombre}
+        </label>
+        <span class="fecha">
+          ${cliente.fecha ? "✔ " + cliente.fecha : ""}
+        </span>
+      `;
+
+      lista.appendChild(div);
+    });
+}
+
+function agregarCliente() {
+  const nombre = document.getElementById("nuevoCliente").value;
+  const dia = document.getElementById("diaCliente").value;
+
+  if (nombre.trim() === "") return;
+
+  clientes.push({
+    nombre: nombre,
+    dia: dia,
+    entregado: false,
+    fecha: null
+  });
+
+  document.getElementById("nuevoCliente").value = "";
+
+  guardar();
+  render();
+}
+
+function toggle(index) {
+  clientes[index].entregado = !clientes[index].entregado;
+
+  if (clientes[index].entregado) {
+    clientes[index].fecha = new Date().toLocaleString();
+  } else {
+    clientes[index].fecha = null;
+  }
+
+  guardar();
+  render();
+}
+
+render();
+</script>
+
+</body>
+</html>
