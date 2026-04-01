@@ -5,11 +5,7 @@
 <title>Jefe</title>
 
 <style>
-body {
-  font-family: Arial;
-  padding:20px;
-  background:#f5f5f5;
-}
+body { font-family: Arial; padding:20px; background:#f5f5f5; }
 
 .card {
   background:white;
@@ -19,40 +15,17 @@ body {
   box-shadow:0 2px 5px rgba(0,0,0,0.1);
 }
 
-input, button {
-  padding:8px;
-  margin:5px;
-}
-
-button {
-  cursor:pointer;
-}
-
 table {
   width:100%;
   border-collapse: collapse;
-  margin-top:10px;
 }
 
 th, td {
   padding:10px;
   border-bottom:1px solid #ddd;
-  text-align:left;
 }
 
-th {
-  background:#eee;
-}
-
-.entregado {
-  color:green;
-  font-weight:bold;
-}
-
-.pendiente {
-  color:red;
-  font-weight:bold;
-}
+button { cursor:pointer; }
 </style>
 
 </head>
@@ -61,7 +34,7 @@ th {
 
 <div id="login" class="card">
   <h3>🔐 Login jefe</h3>
-  <input type="password" id="pass" placeholder="Contraseña">
+  <input type="password" id="pass">
   <button id="btnLogin">Entrar</button>
 </div>
 
@@ -73,20 +46,12 @@ th {
     <input type="text" id="cliente" placeholder="Cliente">
     <input type="text" id="empleado" placeholder="Empleado">
     <input type="date" id="fecha">
+    <input type="text" id="obs" placeholder="Observaciones">
     <button id="btnAgregar">Agregar</button>
   </div>
 
   <div class="card">
-    <h3>🔎 Filtros</h3>
-
-    <input type="text" id="filtroEmpleado" placeholder="Filtrar por empleado">
-    <input type="date" id="filtroFecha">
-
-    <button onclick="render()">Aplicar filtro</button>
-  </div>
-
-  <div class="card">
-    <h3>📋 Lista de entregas</h3>
+    <h3>📋 Lista</h3>
 
     <table>
       <thead>
@@ -96,6 +61,8 @@ th {
           <th>Fecha</th>
           <th>Estado</th>
           <th>Hora</th>
+          <th>Obs</th>
+          <th>Acción</th>
         </tr>
       </thead>
       <tbody id="lista"></tbody>
@@ -105,7 +72,7 @@ th {
 </div>
 
 <script>
-// 🔧 NORMALIZAR
+// NORMALIZAR
 function normalizar(texto) {
   return texto
     .toLowerCase()
@@ -114,19 +81,17 @@ function normalizar(texto) {
     .replace(/[\u0300-\u036f]/g, "");
 }
 
-// 🔐 LOGIN
+// LOGIN
 const PASSWORD = "1234";
 
-document.getElementById("btnLogin").addEventListener("click", function() {
-  const pass = document.getElementById("pass").value;
-
-  if (pass === PASSWORD) {
-    document.getElementById("login").style.display = "none";
-    document.getElementById("panel").style.display = "block";
+document.getElementById("btnLogin").onclick = () => {
+  if (document.getElementById("pass").value === PASSWORD) {
+    login.style.display = "none";
+    panel.style.display = "block";
   } else {
-    alert("Contraseña incorrecta");
+    alert("Incorrecta");
   }
-});
+};
 </script>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -134,8 +99,8 @@ document.getElementById("btnLogin").addEventListener("click", function() {
 
 <script>
 const firebaseConfig = {
-  apiKey: "AIzaSyB7W3rnQ8iuwyUKgZam4DIdyFkSp7Yh66g",
-  databaseURL: "https://repartobackup-1ef28-default-rtdb.firebaseio.com/"
+  apiKey: "TU_API_KEY",
+  databaseURL: "TU_DATABASE_URL"
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -143,62 +108,59 @@ const db = firebase.database();
 
 let data = {};
 
-// 📡 TIEMPO REAL
 db.ref("clientes").on("value", snap => {
   data = snap.val() || {};
   render();
 });
 
-// ➕ AGREGAR CLIENTE
-document.getElementById("btnAgregar").addEventListener("click", function() {
-  const cliente = document.getElementById("cliente").value;
-  const empleado = document.getElementById("empleado").value;
-  const fecha = document.getElementById("fecha").value;
+// AGREGAR
+btnAgregar.onclick = () => {
+  const cliente = clienteInput.value;
+  const empleado = empleadoInput.value;
+  const fecha = fechaInput.value;
+  const observacion = obs.value;
 
   if (!cliente || !empleado || !fecha) {
-    alert("Completar todos los campos");
+    alert("Completar");
     return;
   }
 
   db.ref("clientes").push({
     nombre: cliente,
     empleado: normalizar(empleado),
-    fecha: fecha,
-    entregado: false,
-    hora: null
+    fecha,
+    entregado:false,
+    hora:null,
+    observacion
   });
-});
+};
 
-// 🎨 RENDER CON FILTROS
+// BORRAR
+function borrar(id) {
+  if (confirm("¿Eliminar cliente?")) {
+    db.ref("clientes/" + id).remove();
+  }
+}
+
+// RENDER
 function render() {
-  const lista = document.getElementById("lista");
   lista.innerHTML = "";
 
-  const filtroEmp = normalizar(document.getElementById("filtroEmpleado").value || "");
-  const filtroFecha = document.getElementById("filtroFecha").value;
+  Object.entries(data).forEach(([id,c]) => {
+    const tr = document.createElement("tr");
 
-  Object.values(data)
-    .filter(c => {
-      const matchEmpleado = filtroEmp ? normalizar(c.empleado).includes(filtroEmp) : true;
-      const matchFecha = filtroFecha ? c.fecha === filtroFecha : true;
-      return matchEmpleado && matchFecha;
-    })
-    .forEach(c => {
+    tr.innerHTML = `
+      <td>${c.nombre}</td>
+      <td>${c.empleado}</td>
+      <td>${c.fecha}</td>
+      <td>${c.entregado ? '✔' : 'Pendiente'}</td>
+      <td>${c.hora || '-'}</td>
+      <td>${c.observacion || ''}</td>
+      <td><button onclick="borrar('${id}')">❌</button></td>
+    `;
 
-      const tr = document.createElement("tr");
-
-      tr.innerHTML = `
-        <td>${c.nombre}</td>
-        <td>${c.empleado}</td>
-        <td>${c.fecha}</td>
-        <td class="${c.entregado ? 'entregado' : 'pendiente'}">
-          ${c.entregado ? '✔ Entregado' : 'Pendiente'}
-        </td>
-        <td>${c.hora || '-'}</td>
-      `;
-
-      lista.appendChild(tr);
-    });
+    lista.appendChild(tr);
+  });
 }
 </script>
 
