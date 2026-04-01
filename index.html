@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Repartos</title>
+  <title>Repartos Local</title>
 
   <style>
     body {
@@ -52,13 +52,12 @@
     .filtros {
       margin-bottom: 10px;
     }
-
   </style>
 </head>
 <body>
 
 <div class="container">
-  <h1>🚚 Repartos</h1>
+  <h1>🚚 Repartos (Local)</h1>
 
   <!-- FILTRO -->
   <div class="filtros">
@@ -66,7 +65,7 @@
     <input type="date" id="filtroFecha">
   </div>
 
-  <!-- AGREGAR CLIENTE -->
+  <!-- AGREGAR -->
   <div>
     <input type="text" id="nuevoCliente" placeholder="Nombre del cliente">
     <input type="date" id="fechaCliente">
@@ -77,33 +76,19 @@
   <div id="lista"></div>
 </div>
 
-<!-- FIREBASE -->
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-
 <script>
-/* 🔥 PEGÁ ACA TU CONFIG DE FIREBASE */
-const firebaseConfig = {
-  apiKey: "TU_API_KEY",
-  authDomain: "TU_AUTH_DOMAIN",
-  databaseURL: "TU_DATABASE_URL",
-  projectId: "TU_PROJECT_ID",
-  storageBucket: "TU_STORAGE",
-  messagingSenderId: "TU_SENDER_ID",
-  appId: "TU_APP_ID"
-};
+let clientes = JSON.parse(localStorage.getItem("clientes")) || [];
 
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
+/* GUARDAR */
+function guardar() {
+  localStorage.setItem("clientes", JSON.stringify(clientes));
+}
 
-/* DATOS */
-let clientesData = {};
-
-/* ESCUCHA EN TIEMPO REAL */
-db.ref("clientes").on("value", snapshot => {
-  clientesData = snapshot.val() || {};
-  render();
-});
+/* FECHA HOY */
+function getHoy() {
+  const hoy = new Date();
+  return hoy.toISOString().split("T")[0];
+}
 
 /* AGREGAR CLIENTE */
 function agregarCliente() {
@@ -115,7 +100,7 @@ function agregarCliente() {
     return;
   }
 
-  db.ref("clientes").push({
+  clientes.push({
     nombre: nombre,
     fecha: fecha,
     entregado: false,
@@ -123,20 +108,23 @@ function agregarCliente() {
   });
 
   document.getElementById("nuevoCliente").value = "";
+
+  guardar();
+  render();
 }
 
-/* MARCAR ENTREGA */
-function toggle(id, cliente) {
-  db.ref("clientes/" + id).update({
-    entregado: !cliente.entregado,
-    hora: !cliente.entregado ? new Date().toLocaleTimeString() : null
-  });
-}
+/* TOGGLE ENTREGA */
+function toggle(index) {
+  clientes[index].entregado = !clientes[index].entregado;
 
-/* FILTRO AUTOMÁTICO HOY */
-function getHoy() {
-  const hoy = new Date();
-  return hoy.toISOString().split("T")[0];
+  if (clientes[index].entregado) {
+    clientes[index].hora = new Date().toLocaleTimeString();
+  } else {
+    clientes[index].hora = null;
+  }
+
+  guardar();
+  render();
 }
 
 /* RENDER */
@@ -144,14 +132,13 @@ function render() {
   const lista = document.getElementById("lista");
   const filtroInput = document.getElementById("filtroFecha");
 
-  // si no hay filtro, usa hoy automáticamente
   const filtro = filtroInput.value || getHoy();
 
   lista.innerHTML = "";
 
-  Object.entries(clientesData)
-    .filter(([id, c]) => c.fecha === filtro)
-    .forEach(([id, cliente]) => {
+  clientes
+    .filter(c => c.fecha === filtro)
+    .forEach((cliente, index) => {
 
       const div = document.createElement("div");
       div.className = "cliente";
@@ -160,7 +147,7 @@ function render() {
         <label>
           <input type="checkbox"
             ${cliente.entregado ? "checked" : ""}
-            onchange='toggle("${id}", ${JSON.stringify(cliente)})'>
+            onchange="toggle(${index})">
           ${cliente.nombre} (${cliente.fecha})
         </label>
         <span class="fecha">
@@ -172,9 +159,11 @@ function render() {
     });
 }
 
-/* ACTUALIZA CUANDO CAMBIA EL FILTRO */
+/* EVENTO FILTRO */
 document.getElementById("filtroFecha").addEventListener("change", render);
 
+/* INICIO */
+render();
 </script>
 
 </body>
