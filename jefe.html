@@ -43,10 +43,10 @@ button { cursor:pointer; }
   <div class="card">
     <h2>👨‍💼 Panel Jefe</h2>
 
-    <input type="text" id="cliente" placeholder="Cliente">
-    <input type="text" id="empleado" placeholder="Empleado">
-    <input type="date" id="fecha">
-    <input type="text" id="obs" placeholder="Observaciones">
+    <input type="text" id="clienteInput" placeholder="Cliente">
+    <input type="text" id="empleadoInput" placeholder="Empleado">
+    <input type="date" id="fechaInput">
+    <input type="text" id="obsInput" placeholder="Observaciones">
     <button id="btnAgregar">Agregar</button>
   </div>
 
@@ -74,11 +74,7 @@ button { cursor:pointer; }
 <script>
 // NORMALIZAR
 function normalizar(texto) {
-  return texto
-    .toLowerCase()
-    .trim()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
+  return texto.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 }
 
 // LOGIN
@@ -86,8 +82,8 @@ const PASSWORD = "1234";
 
 document.getElementById("btnLogin").onclick = () => {
   if (document.getElementById("pass").value === PASSWORD) {
-    login.style.display = "none";
-    panel.style.display = "block";
+    document.getElementById("login").style.display = "none";
+    document.getElementById("panel").style.display = "block";
   } else {
     alert("Incorrecta");
   }
@@ -114,11 +110,11 @@ db.ref("clientes").on("value", snap => {
 });
 
 // AGREGAR
-btnAgregar.onclick = () => {
+document.getElementById("btnAgregar").onclick = () => {
   const cliente = clienteInput.value;
   const empleado = empleadoInput.value;
   const fecha = fechaInput.value;
-  const observacion = obs.value;
+  const observacion = obsInput.value;
 
   if (!cliente || !empleado || !fecha) {
     alert("Completar");
@@ -133,6 +129,11 @@ btnAgregar.onclick = () => {
     hora:null,
     observacion
   });
+
+  clienteInput.value = "";
+  empleadoInput.value = "";
+  fechaInput.value = "";
+  obsInput.value = "";
 };
 
 // BORRAR
@@ -155,7 +156,7 @@ function render() {
       <td>${c.fecha}</td>
       <td>${c.entregado ? '✔' : 'Pendiente'}</td>
       <td>${c.hora || '-'}</td>
-      <td>${c.observacion || ''}</td>
+      <td>${c.observacion || '-'}</td>
       <td><button onclick="borrar('${id}')">❌</button></td>
     `;
 
