@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Empleado</title>
+</head>
+
+<body>
+
+<h2>🚚 Mis entregas</h2>
+
+<input type="text" id="nombre" placeholder="Tu nombre">
+<input type="date" id="fecha">
+
+<div id="lista"></div>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "TU_API",
+  databaseURL: "TU_DB"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+let data = {};
+
+db.ref("clientes").on("value", snap => {
+  data = snap.val() || {};
+  render();
+});
+
+function hoy() {
+  return new Date().toISOString().split("T")[0];
+}
+
+function toggle(id, c) {
+  db.ref("clientes/"+id).update({
+    entregado: !c.entregado,
+    hora: !c.entregado ? new Date().toLocaleTimeString() : null
+  });
+}
+
+function render() {
+  const lista = document.getElementById("lista");
+  const nombre = document.getElementById("nombre").value;
+  const fecha = document.getElementById("fecha").value || hoy();
+
+  lista.innerHTML = "";
+
+  Object.entries(data)
+    .filter(([id,c]) => c.empleado === nombre && c.fecha === fecha)
+    .forEach(([id,c]) => {
+
+      const div = document.createElement("div");
+
+      const check = document.createElement("input");
+      check.type = "checkbox";
+      check.checked = c.entregado;
+      check.onchange = () => toggle(id,c);
+
+      div.appendChild(check);
+      div.append(" " + c.nombre);
+
+      if (c.hora) {
+        div.append(" ✔ " + c.hora);
+      }
+
+      lista.appendChild(div);
+    });
+}
+</script>
+
+</body>
+</html>
