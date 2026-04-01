@@ -152,13 +152,13 @@ function render() {
 
       card.innerHTML = `
         <b>${c.nombre}</b><br>
-        Estado: ${c.entregado ? "✔️ Entregado" : "Pendiente"}<br>
+        Estado: ${c.entregado ? "✔️ Completado" : "Pendiente"}<br>
         Hora: ${c.hora || "-"}<br>
         Observación: ${c.observacion || "-"}<br>
       `;
 
       const btn = document.createElement("button");
-      btn.textContent = c.entregado ? "Desmarcar" : "Marcar entregado";
+      btn.textContent = c.entregado ? "Desmarcar" : "Marcar completado";
       btn.onclick = () => marcar(id,c);
 
       card.appendChild(btn);
