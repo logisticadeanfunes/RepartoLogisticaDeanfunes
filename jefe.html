@@ -154,10 +154,10 @@ function render() {
       <td>${c.nombre}</td>
       <td>${c.empleado}</td>
       <td>${c.fecha}</td>
-      <td>${c.entregado ? '✔' : 'Pendiente'}</td>
+      <td>${c.entregado ? '✔ Entregado' : 'Pendiente'}</td>
       <td>${c.hora || '-'}</td>
       <td>${c.observacion || '-'}</td>
-      <td><button onclick="borrar('${id}')">❌</button></td>
+      <td><button onclick="borrar('${id}')">🗑️</button></td>
     `;
 
     lista.appendChild(tr);
