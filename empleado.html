@@ -133,6 +133,29 @@ function marcar(id, c) {
     hora: !c.entregado ? new Date().toLocaleString('es-AR') : null
   });
 }
+
+// ➕ AGREGAR CLIENTE
+function agregarCliente() {
+  const cliente = document.getElementById("nuevoCliente").value;
+  const nombre = document.getElementById("nombre").value.trim();
+  const fecha = document.getElementById("fecha").value || hoy();
+
+  if (!cliente || !nombre) {
+    alert("Completar datos");
+    return;
+  }
+
+  db.ref("clientes").push({
+    nombre: cliente,
+    empleado: nombre,
+    fecha: fecha,
+    entregado: false,
+    hora: null
+  });
+
+  document.getElementById("nuevoCliente").value = "";
+}
+
 // RENDER
 function render() {
   const lista = document.getElementById("lista");
