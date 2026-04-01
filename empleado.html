@@ -11,10 +11,19 @@ body { font-family: Arial; padding:20px; }
 
 <body>
 
-<h2>🚚 Mis entregas</h2>
+<h2>🚚 Panel Empleado</h2>
 
 <input type="text" id="nombre" placeholder="Tu nombre">
 <input type="date" id="fecha">
+<button onclick="verClientes()">Ver clientes</button>
+
+<hr>
+
+<h3>➕ Agregar cliente</h3>
+<input type="text" id="nuevoCliente" placeholder="Nombre cliente">
+<button onclick="agregarCliente()">Agregar</button>
+
+<hr>
 
 <div id="lista"></div>
 
@@ -22,6 +31,15 @@ body { font-family: Arial; padding:20px; }
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
 <script>
+// 🔧 NORMALIZAR TEXTO
+function normalizar(texto) {
+  return texto
+    .toLowerCase()
+    .trim()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
 const firebaseConfig = {
   apiKey: "TU_API_KEY",
   databaseURL: "TU_DATABASE_URL"
@@ -31,6 +49,8 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 let data = {};
+let nombreActual = "";
+let fechaActual = "";
 
 // 📡 TIEMPO REAL
 db.ref("clientes").on("value", snap => {
@@ -38,16 +58,47 @@ db.ref("clientes").on("value", snap => {
   render();
 });
 
-// 📅 FECHA HOY
+// 📅 HOY
 function hoy() {
   return new Date().toISOString().split("T")[0];
 }
 
-// 🔄 AUTO ACTUALIZAR
-document.getElementById("nombre").addEventListener("input", render);
-document.getElementById("fecha").addEventListener("change", render);
+// 🔎 VER CLIENTES
+function verClientes() {
+  nombreActual = normalizar(document.getElementById("nombre").value);
+  fechaActual = document.getElementById("fecha").value || hoy();
 
-// ✔️ MARCAR ENTREGADO
+  if (!nombreActual) {
+    alert("Escribí tu nombre");
+    return;
+  }
+
+  render();
+}
+
+// ➕ AGREGAR CLIENTE
+function agregarCliente() {
+  const cliente = document.getElementById("nuevoCliente").value;
+  const nombre = document.getElementById("nombre").value;
+  const fecha = document.getElementById("fecha").value || hoy();
+
+  if (!cliente || !nombre) {
+    alert("Completar datos");
+    return;
+  }
+
+  db.ref("clientes").push({
+    nombre: cliente,
+    empleado: normalizar(nombre),
+    fecha: fecha,
+    entregado: false,
+    hora: null
+  });
+
+  document.getElementById("nuevoCliente").value = "";
+}
+
+// ✔️ ENTREGADO
 function toggle(id, c) {
   db.ref("clientes/" + id).update({
     entregado: !c.entregado,
@@ -58,15 +109,14 @@ function toggle(id, c) {
 // 🎨 RENDER
 function render() {
   const lista = document.getElementById("lista");
-  const nombre = document.getElementById("nombre").value.toLowerCase();
-  const fecha = document.getElementById("fecha").value || hoy();
-
   lista.innerHTML = "";
+
+  if (!nombreActual) return;
 
   Object.entries(data)
     .filter(([id,c]) =>
-      c.empleado.toLowerCase() === nombre &&
-      c.fecha === fecha
+      normalizar(c.empleado) === nombreActual &&
+      c.fecha === fechaActual
     )
     .forEach(([id,c]) => {
 
