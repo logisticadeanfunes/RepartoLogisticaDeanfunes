@@ -90,6 +90,11 @@ function getHoy() {
   return hoy.toISOString().split("T")[0];
 }
 
+/* GENERAR ID ÚNICO */
+function generarID() {
+  return Date.now();
+}
+
 /* AGREGAR CLIENTE */
 function agregarCliente() {
   const nombre = document.getElementById("nuevoCliente").value;
@@ -101,6 +106,7 @@ function agregarCliente() {
   }
 
   clientes.push({
+    id: generarID(),
     nombre: nombre,
     fecha: fecha,
     entregado: false,
@@ -113,14 +119,16 @@ function agregarCliente() {
   render();
 }
 
-/* TOGGLE ENTREGA */
-function toggle(index) {
-  clientes[index].entregado = !clientes[index].entregado;
+/* TOGGLE ENTREGA (BUSCA POR ID, NO POR INDEX) */
+function toggle(id) {
+  const cliente = clientes.find(c => c.id === id);
 
-  if (clientes[index].entregado) {
-    clientes[index].hora = new Date().toLocaleTimeString();
+  cliente.entregado = !cliente.entregado;
+
+  if (cliente.entregado) {
+    cliente.hora = new Date().toLocaleTimeString();
   } else {
-    clientes[index].hora = null;
+    cliente.hora = null;
   }
 
   guardar();
@@ -138,7 +146,7 @@ function render() {
 
   clientes
     .filter(c => c.fecha === filtro)
-    .forEach((cliente, index) => {
+    .forEach((cliente) => {
 
       const div = document.createElement("div");
       div.className = "cliente";
@@ -147,7 +155,7 @@ function render() {
         <label>
           <input type="checkbox"
             ${cliente.entregado ? "checked" : ""}
-            onchange="toggle(${index})">
+            onchange="toggle(${cliente.id})">
           ${cliente.nombre} (${cliente.fecha})
         </label>
         <span class="fecha">
@@ -165,6 +173,3 @@ document.getElementById("filtroFecha").addEventListener("change", render);
 /* INICIO */
 render();
 </script>
-
-</body>
-</html>
