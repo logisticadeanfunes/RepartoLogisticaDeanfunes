@@ -3,6 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <title>Empleado</title>
+<style>
+body { font-family: Arial; padding:20px; }
+.cliente { margin:10px 0; }
+</style>
 </head>
 
 <body>
@@ -19,8 +23,8 @@
 
 <script>
 const firebaseConfig = {
-  apiKey: "TU_API",
-  databaseURL: "TU_DB"
+  apiKey: "TU_API_KEY",
+  databaseURL: "TU_DATABASE_URL"
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -28,34 +32,46 @@ const db = firebase.database();
 
 let data = {};
 
+// 📡 TIEMPO REAL
 db.ref("clientes").on("value", snap => {
   data = snap.val() || {};
   render();
 });
 
+// 📅 FECHA HOY
 function hoy() {
   return new Date().toISOString().split("T")[0];
 }
 
+// 🔄 AUTO ACTUALIZAR
+document.getElementById("nombre").addEventListener("input", render);
+document.getElementById("fecha").addEventListener("change", render);
+
+// ✔️ MARCAR ENTREGADO
 function toggle(id, c) {
-  db.ref("clientes/"+id).update({
+  db.ref("clientes/" + id).update({
     entregado: !c.entregado,
     hora: !c.entregado ? new Date().toLocaleTimeString() : null
   });
 }
 
+// 🎨 RENDER
 function render() {
   const lista = document.getElementById("lista");
-  const nombre = document.getElementById("nombre").value;
+  const nombre = document.getElementById("nombre").value.toLowerCase();
   const fecha = document.getElementById("fecha").value || hoy();
 
   lista.innerHTML = "";
 
   Object.entries(data)
-    .filter(([id,c]) => c.empleado === nombre && c.fecha === fecha)
+    .filter(([id,c]) =>
+      c.empleado.toLowerCase() === nombre &&
+      c.fecha === fecha
+    )
     .forEach(([id,c]) => {
 
       const div = document.createElement("div");
+      div.className = "cliente";
 
       const check = document.createElement("input");
       check.type = "checkbox";
@@ -65,7 +81,7 @@ function render() {
       div.appendChild(check);
       div.append(" " + c.nombre);
 
-      if (c.hora) {
+      if (c.entregado && c.hora) {
         div.append(" ✔ " + c.hora);
       }
 
