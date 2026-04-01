@@ -3,13 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <title>Jefe</title>
+<style>
+body { font-family: Arial; padding:20px; }
+</style>
 </head>
 
 <body>
 
 <div id="login">
-  <h3>Login jefe</h3>
-  <input type="password" id="pass">
+  <h3>🔐 Login jefe</h3>
+  <input type="password" id="pass" placeholder="Contraseña">
   <button id="btnLogin">Entrar</button>
 </div>
 
@@ -21,11 +24,13 @@
   <input type="date" id="fecha">
   <button id="btnAgregar">Agregar</button>
 
+  <hr>
+
   <div id="lista"></div>
 </div>
 
 <script>
-// 🔐 LOGIN PRIMERO (NO DEPENDE DE FIREBASE)
+// 🔐 LOGIN
 const PASSWORD = "1234";
 
 document.getElementById("btnLogin").addEventListener("click", function() {
@@ -40,58 +45,62 @@ document.getElementById("btnLogin").addEventListener("click", function() {
 });
 </script>
 
-<!-- FIREBASE DESPUÉS -->
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
 <script>
-try {
-  const firebaseConfig = {
-    apiKey: "AIzaSyB7W3rnQ8iuwyUKgZam4DIdyFkSp7Yh66g",
-    databaseURL: "https://repartobackup-1ef28-default-rtdb.firebaseio.com/"
-  };
+const firebaseConfig = {
+  apiKey: "TU_API_KEY",
+  databaseURL: "TU_DATABASE_URL"
+};
 
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
-  let data = {};
+let data = {};
 
-  db.ref("clientes").on("value", snap => {
-    data = snap.val() || {};
-    render();
-  });
+// 📡 TIEMPO REAL
+db.ref("clientes").on("value", snap => {
+  data = snap.val() || {};
+  render();
+});
 
-  document.getElementById("btnAgregar").addEventListener("click", function() {
-    const cliente = document.getElementById("cliente").value;
-    const empleado = document.getElementById("empleado").value;
-    const fecha = document.getElementById("fecha").value;
+// ➕ AGREGAR CLIENTE
+document.getElementById("btnAgregar").addEventListener("click", function() {
+  const cliente = document.getElementById("cliente").value;
+  const empleado = document.getElementById("empleado").value;
+  const fecha = document.getElementById("fecha").value;
 
-    if (!cliente || !empleado) {
-      alert("Completar datos");
-      return;
-    }
-
-    db.ref("clientes").push({
-      nombre: cliente,
-      empleado,
-      fecha,
-      entregado: false
-    });
-  });
-
-  function render() {
-    const lista = document.getElementById("lista");
-    lista.innerHTML = "";
-
-    Object.values(data).forEach(c => {
-      const div = document.createElement("div");
-      div.textContent = c.nombre + " - " + c.empleado + " - " + (c.entregado ? "✔" : "❌");
-      lista.appendChild(div);
-    });
+  if (!cliente || !empleado || !fecha) {
+    alert("Completar todos los campos");
+    return;
   }
 
-} catch (error) {
-  console.log("Error Firebase:", error);
+  db.ref("clientes").push({
+    nombre: cliente,
+    empleado,
+    fecha,
+    entregado: false,
+    hora: null
+  });
+});
+
+// 🎨 RENDER JEFE
+function render() {
+  const lista = document.getElementById("lista");
+  lista.innerHTML = "";
+
+  Object.values(data).forEach(c => {
+    const div = document.createElement("div");
+
+    div.textContent =
+      c.nombre + " | " +
+      c.empleado + " | " +
+      c.fecha + " | " +
+      (c.entregado ? "✔ " + (c.hora || "") : "Pendiente");
+
+    lista.appendChild(div);
+  });
 }
 </script>
 
