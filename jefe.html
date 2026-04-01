@@ -30,6 +30,15 @@ body { font-family: Arial; padding:20px; }
 </div>
 
 <script>
+// 🔧 NORMALIZAR
+function normalizar(texto) {
+  return texto
+    .toLowerCase()
+    .trim()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
 // 🔐 LOGIN
 const PASSWORD = "1234";
 
@@ -65,7 +74,7 @@ db.ref("clientes").on("value", snap => {
   render();
 });
 
-// ➕ AGREGAR CLIENTE
+// ➕ AGREGAR
 document.getElementById("btnAgregar").addEventListener("click", function() {
   const cliente = document.getElementById("cliente").value;
   const empleado = document.getElementById("empleado").value;
@@ -78,14 +87,14 @@ document.getElementById("btnAgregar").addEventListener("click", function() {
 
   db.ref("clientes").push({
     nombre: cliente,
-    empleado,
-    fecha,
+    empleado: normalizar(empleado),
+    fecha: fecha,
     entregado: false,
     hora: null
   });
 });
 
-// 🎨 RENDER JEFE
+// 🎨 RENDER
 function render() {
   const lista = document.getElementById("lista");
   lista.innerHTML = "";
