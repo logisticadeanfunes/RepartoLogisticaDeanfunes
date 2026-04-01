@@ -3,30 +3,105 @@
 <head>
 <meta charset="UTF-8">
 <title>Jefe</title>
+
 <style>
-body { font-family: Arial; padding:20px; }
+body {
+  font-family: Arial;
+  padding:20px;
+  background:#f5f5f5;
+}
+
+.card {
+  background:white;
+  padding:15px;
+  border-radius:10px;
+  margin-bottom:15px;
+  box-shadow:0 2px 5px rgba(0,0,0,0.1);
+}
+
+input, button {
+  padding:8px;
+  margin:5px;
+}
+
+button {
+  cursor:pointer;
+}
+
+table {
+  width:100%;
+  border-collapse: collapse;
+  margin-top:10px;
+}
+
+th, td {
+  padding:10px;
+  border-bottom:1px solid #ddd;
+  text-align:left;
+}
+
+th {
+  background:#eee;
+}
+
+.entregado {
+  color:green;
+  font-weight:bold;
+}
+
+.pendiente {
+  color:red;
+  font-weight:bold;
+}
 </style>
+
 </head>
 
 <body>
 
-<div id="login">
+<div id="login" class="card">
   <h3>🔐 Login jefe</h3>
   <input type="password" id="pass" placeholder="Contraseña">
   <button id="btnLogin">Entrar</button>
 </div>
 
 <div id="panel" style="display:none;">
-  <h2>👨‍💼 Panel Jefe</h2>
 
-  <input type="text" id="cliente" placeholder="Cliente">
-  <input type="text" id="empleado" placeholder="Empleado">
-  <input type="date" id="fecha">
-  <button id="btnAgregar">Agregar</button>
+  <div class="card">
+    <h2>👨‍💼 Panel Jefe</h2>
 
-  <hr>
+    <input type="text" id="cliente" placeholder="Cliente">
+    <input type="text" id="empleado" placeholder="Empleado">
+    <input type="date" id="fecha">
+    <button id="btnAgregar">Agregar</button>
+  </div>
 
-  <div id="lista"></div>
+  <div class="card">
+    <h3>🔎 Filtros</h3>
+
+    <input type="text" id="filtroEmpleado" placeholder="Filtrar por empleado">
+    <input type="date" id="filtroFecha">
+
+    <button onclick="render()">Aplicar filtro</button>
+  </div>
+
+  <div class="card">
+    <h3>📋 Lista de entregas</h3>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Cliente</th>
+          <th>Empleado</th>
+          <th>Fecha</th>
+          <th>Estado</th>
+          <th>Hora</th>
+        </tr>
+      </thead>
+      <tbody id="lista"></tbody>
+    </table>
+  </div>
+
 </div>
 
 <script>
@@ -59,8 +134,8 @@ document.getElementById("btnLogin").addEventListener("click", function() {
 
 <script>
 const firebaseConfig = {
-  apiKey: "AIzaSyB7W3rnQ8iuwyUKgZam4DIdyFkSp7Yh66g",
-  databaseURL: "https://repartobackup-1ef28-default-rtdb.firebaseio.com/"
+  apiKey: "TU_API_KEY",
+  databaseURL: "TU_DATABASE_URL"
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -74,7 +149,7 @@ db.ref("clientes").on("value", snap => {
   render();
 });
 
-// ➕ AGREGAR
+// ➕ AGREGAR CLIENTE
 document.getElementById("btnAgregar").addEventListener("click", function() {
   const cliente = document.getElementById("cliente").value;
   const empleado = document.getElementById("empleado").value;
@@ -94,22 +169,36 @@ document.getElementById("btnAgregar").addEventListener("click", function() {
   });
 });
 
-// 🎨 RENDER
+// 🎨 RENDER CON FILTROS
 function render() {
   const lista = document.getElementById("lista");
   lista.innerHTML = "";
 
-  Object.values(data).forEach(c => {
-    const div = document.createElement("div");
+  const filtroEmp = normalizar(document.getElementById("filtroEmpleado").value || "");
+  const filtroFecha = document.getElementById("filtroFecha").value;
 
-    div.textContent =
-      c.nombre + " | " +
-      c.empleado + " | " +
-      c.fecha + " | " +
-      (c.entregado ? "✔ " + (c.hora || "") : "Pendiente");
+  Object.values(data)
+    .filter(c => {
+      const matchEmpleado = filtroEmp ? normalizar(c.empleado).includes(filtroEmp) : true;
+      const matchFecha = filtroFecha ? c.fecha === filtroFecha : true;
+      return matchEmpleado && matchFecha;
+    })
+    .forEach(c => {
 
-    lista.appendChild(div);
-  });
+      const tr = document.createElement("tr");
+
+      tr.innerHTML = `
+        <td>${c.nombre}</td>
+        <td>${c.empleado}</td>
+        <td>${c.fecha}</td>
+        <td class="${c.entregado ? 'entregado' : 'pendiente'}">
+          ${c.entregado ? '✔ Entregado' : 'Pendiente'}
+        </td>
+        <td>${c.hora || '-'}</td>
+      `;
+
+      lista.appendChild(tr);
+    });
 }
 </script>
 
