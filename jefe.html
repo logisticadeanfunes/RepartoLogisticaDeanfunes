@@ -1,93 +1,32 @@
 <!DOCTYPE html>
 <html>
-<head>
-<meta charset="UTF-8">
-<title>Jefe</title>
-</head>
-
 <body>
 
 <div id="login">
-  <h3>Login jefe</h3>
   <input type="password" id="pass" placeholder="Contraseña">
   <button id="btnLogin">Entrar</button>
 </div>
 
 <div id="panel" style="display:none;">
-  <h2>👨‍💼 Panel Jefe</h2>
-
-  <input type="text" id="cliente" placeholder="Cliente">
-  <input type="text" id="empleado" placeholder="Empleado">
-  <input type="date" id="fecha">
-  <button id="btnAgregar">Agregar</button>
-
-  <div id="lista"></div>
+  <h2>ENTRASTE AL PANEL</h2>
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-
 <script>
-const firebaseConfig = {
-  apiKey: "TU_API",
-  databaseURL: "TU_DB"
-};
+const PASSWORD = "1234";
 
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-
-const PASSWORD = "1234"; // cambiá si querés
-
-let data = {};
-
-// 🔐 LOGIN (AHORA CON EVENT LISTENER)
 document.getElementById("btnLogin").addEventListener("click", function() {
+  alert("CLICK DETECTADO");
+
   const pass = document.getElementById("pass").value;
 
   if (pass === PASSWORD) {
+    alert("CONTRASEÑA OK");
     document.getElementById("login").style.display = "none";
     document.getElementById("panel").style.display = "block";
   } else {
     alert("Contraseña incorrecta");
   }
 });
-
-// 📡 TIEMPO REAL
-db.ref("clientes").on("value", snap => {
-  data = snap.val() || {};
-  render();
-});
-
-// ➕ AGREGAR CLIENTE
-document.getElementById("btnAgregar").addEventListener("click", function() {
-  const cliente = document.getElementById("cliente").value;
-  const empleado = document.getElementById("empleado").value;
-  const fecha = document.getElementById("fecha").value;
-
-  if (!cliente || !empleado) {
-    alert("Completar datos");
-    return;
-  }
-
-  db.ref("clientes").push({
-    nombre: cliente,
-    empleado,
-    fecha,
-    entregado: false
-  });
-});
-
-// 📋 RENDER
-function render() {
-  const lista = document.getElementById("lista");
-  lista.innerHTML = "";
-
-  Object.values(data).forEach(c => {
-    const div = document.createElement("div");
-    div.textContent = c.nombre + " - " + c.empleado + " - " + (c.entregado ? "✔" : "❌");
-    lista.appendChild(div);
-  });
-}
 </script>
 
 </body>
