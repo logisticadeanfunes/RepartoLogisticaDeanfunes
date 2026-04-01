@@ -10,7 +10,7 @@
 <div id="login">
   <h3>Login jefe</h3>
   <input type="password" id="pass" placeholder="Contraseña">
-  <button onclick="login()">Entrar</button>
+  <button id="btnLogin">Entrar</button>
 </div>
 
 <div id="panel" style="display:none;">
@@ -19,7 +19,7 @@
   <input type="text" id="cliente" placeholder="Cliente">
   <input type="text" id="empleado" placeholder="Empleado">
   <input type="date" id="fecha">
-  <button onclick="agregar()">Agregar</button>
+  <button id="btnAgregar">Agregar</button>
 
   <div id="lista"></div>
 </div>
@@ -36,11 +36,12 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-const PASSWORD = "titan3873"; // 🔐 CAMBIAR
+const PASSWORD = "1234"; // cambiá si querés
 
 let data = {};
 
-function login() {
+// 🔐 LOGIN (AHORA CON EVENT LISTENER)
+document.getElementById("btnLogin").addEventListener("click", function() {
   const pass = document.getElementById("pass").value;
 
   if (pass === PASSWORD) {
@@ -49,17 +50,24 @@ function login() {
   } else {
     alert("Contraseña incorrecta");
   }
-}
+});
 
+// 📡 TIEMPO REAL
 db.ref("clientes").on("value", snap => {
   data = snap.val() || {};
   render();
 });
 
-function agregar() {
+// ➕ AGREGAR CLIENTE
+document.getElementById("btnAgregar").addEventListener("click", function() {
   const cliente = document.getElementById("cliente").value;
   const empleado = document.getElementById("empleado").value;
   const fecha = document.getElementById("fecha").value;
+
+  if (!cliente || !empleado) {
+    alert("Completar datos");
+    return;
+  }
 
   db.ref("clientes").push({
     nombre: cliente,
@@ -67,8 +75,9 @@ function agregar() {
     fecha,
     entregado: false
   });
-}
+});
 
+// 📋 RENDER
 function render() {
   const lista = document.getElementById("lista");
   lista.innerHTML = "";
