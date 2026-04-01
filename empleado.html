@@ -5,14 +5,66 @@
 <title>Empleado</title>
 
 <style>
-body { font-family: Arial; padding:20px; background:#f5f5f5; }
+body {
+  font-family: Arial;
+  padding:20px;
+  background:#eaeaea; /* gris */
+}
 
 .card {
-  background:white;
+  background:#d0ebff; /* azul claro */
   padding:15px;
+  border-radius:12px;
+  margin-bottom:15px;
+  box-shadow:0 3px 8px rgba(0,0,0,0.1);
+}
+
+/* Inputs y botones */
+input, button, textarea {
+  padding:8px;
+  margin:5px 0;
+  border-radius:6px;
+  border:1px solid #ccc;
+}
+
+button {
+  background:#4dabf7;
+  color:white;
+  border:none;
+}
+
+button:hover {
+  background:#339af0;
+}
+
+/* TABLA (jefe) */
+table {
+  width:100%;
+  border-collapse: collapse;
+  background:white;
   border-radius:10px;
-  margin-bottom:10px;
-  box-shadow:0 2px 5px rgba(0,0,0,0.1);
+  overflow:hidden;
+}
+
+th {
+  background:#74c0fc;
+  color:white;
+}
+
+th, td {
+  padding:10px;
+  border-bottom:1px solid #ddd;
+}
+
+/* Estados */
+.entregado {
+  color:green;
+  font-weight:bold;
+}
+
+.pendiente {
+  color:red;
+  font-weight:bold;
 }
 </style>
 
